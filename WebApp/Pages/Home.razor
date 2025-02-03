@@ -1,0 +1,41 @@
+﻿@page "/"
+
+<h3>Inicio de sesión</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <InputText id="email" class="form-control" @bind-Value="loginModel.Username" />
+        <ValidationMessage For="@(() => loginModel.Username)" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Contraseña</label>
+        <InputText id="password" class="form-control" @bind-Value="loginModel.Password" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+</EditForm>
+
+
+@code{
+    GetLoginParam loginModel = new GetLoginParam();
+
+    private async Task HandleValidSubmit()
+    {
+        var httpclient = new HttpClient();
+        httpclient.GetAsync(/)
+
+        var encryptor = new InsaneIO.Insane.Cryptography.RsaEncryptor();
+        encryptor.KeyPair = new InsaneIO.Insane.Cryptography.RsaKeyPair
+        {
+            PublicKey = 
+        }
+        var encrypted = InsaneIO.Insane. EncryptEncodedRsa(publicKey, encoder);
+
+    }
+}
