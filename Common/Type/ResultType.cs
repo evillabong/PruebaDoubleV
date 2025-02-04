@@ -10,6 +10,7 @@ namespace Common.Type
         Error = 1,
         SessionFail= 98,
         InternalError = 99,
-        ContextFail = 100
+        ContextFail = 100,
+        UnknowError = 101
     }
 }

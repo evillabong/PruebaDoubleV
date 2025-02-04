@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Common.Param
 {
-    public class GetLoginParam
+    public class GetLoginParam : BaseParam
     {
         [Required(ErrorMessage = "El campo Usuario es requerido.")]
         [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "El campo Usuario solo debe contener letras, números y guiones bajos.")]
