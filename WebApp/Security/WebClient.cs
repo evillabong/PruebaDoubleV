@@ -28,7 +28,7 @@ namespace WebApp.Security
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseUpper
             };
             _js = js;
         }
@@ -44,8 +44,9 @@ namespace WebApp.Security
         {
             var requestMessage = new HttpRequestMessage()
             {
-                Method = new HttpMethod("GET"),
+                Method = HttpMethod.Get,
                 RequestUri = new Uri(endpoint),
+                
             };
             return await SendRequest<TResult>(requestMessage);
         }
@@ -88,7 +89,7 @@ namespace WebApp.Security
                 }
 
                 var response = await _httpClient.SendAsync(requestMessage);
-                var content = await requestMessage.Content!.ReadAsStringAsync();
+                var content = await requestMessage.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<TResult>(content);
                 return result!;
 

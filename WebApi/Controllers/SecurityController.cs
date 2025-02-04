@@ -14,17 +14,19 @@ using System.Text;
 using WebApi.Extensions;
 using WebApi.Security;
 using Common.Extensions;
+using Microsoft.AspNetCore.Cors;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [EnableCors(PolicyName = "DoubleVPolicy")]
+    [Route("api/[controller]")]   
     [ApiController]
     public class SecurityController : ControllerBase
     {
         public DatabaseContext _dbContext;
         public IConfiguration _configuration;
         public IJwtService _jwtService;
-        public SecurityController(DatabaseContext dbContext, IConfiguration configuration,IJwtService jwtService)
+        public SecurityController(DatabaseContext dbContext, IConfiguration configuration, IJwtService jwtService)
         {
             this._dbContext = dbContext;
             this._configuration = configuration;
@@ -51,7 +53,7 @@ namespace WebApi.Controllers
                                 new Claim(ClaimTypes.Role, RoleType.User.ToString()),
                                 new Claim("CreateBy","Double V Partner"),
                             };
-                                                             
+
                     var tk = _jwtService.CreateJwtToken(claims);
                     var expiration = tk.Expiration.ToDateTimeOffSet();
 
@@ -75,14 +77,18 @@ namespace WebApi.Controllers
                 return ret;
             }
         }
+
         [AllowAnonymous]
-        [HttpPost(nameof(Common.Controllers.Security.GetPublicKey))]
-        public GetPublicKeyResult GetPublicKey()
+        [HttpGet(nameof(Common.Controllers.Security.GetPublicKey))]
+        public async Task<GetPublicKeyResult> GetPublicKey()
         {
-            return new GetPublicKeyResult
+            return await Task.Run(() =>
             {
-                Value = _configuration.GetPublicKey()
-            };
+                return new GetPublicKeyResult
+                {
+                    Value = _configuration.GetPublicKey()
+                };
+            });
         }
     }
 }

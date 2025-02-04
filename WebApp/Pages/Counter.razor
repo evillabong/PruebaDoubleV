@@ -1,6 +1,8 @@
 ﻿@page "/counter"
 @using Common.Interfaces
 @inject IWebClient client
+@inject IJSRuntime js
+@inject NavigationManager navigation
 
 <PageTitle>Registro de cliente</PageTitle>
 
@@ -48,7 +50,7 @@
     </div>
     @if (load)
     {
-        <LoaderView></LoaderView>
+        <WebApp.Views.LoaderView></WebApp.Views.LoaderView>
     }
     <button type="submit" class="btn btn-primary" disable=@load>Iniciar sesión</button>
 </EditForm>
@@ -64,5 +66,10 @@
     async void HandleValidSubmit()
     {
         var response = await client.PostAsync<SetRegistrationUserParam, Common.Controllers.User, SetRegistrationUserResult>(Common.Controllers.User.SetRegistrationUser, model);
+        if (response.IsSuccess())
+        {
+            await js.InvokeVoidAsync("alert", "Cliente registrado");
+            navigation.NavigateTo("/");
+        }
     }
 }

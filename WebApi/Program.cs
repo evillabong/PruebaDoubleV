@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Model.Entities.PruebaDoubleV.Sql;
 using System.Text;
+using System.Text.Json;
 using WebApi.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +39,6 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
             });
     }
-
-
 });
 builder.Services.AddDbContext<DatabaseContext>(options =>
 {
@@ -80,7 +79,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtService, JwtService>((provider) => new JwtService(provider.GetService<IConfiguration>()!));
-builder.Services.AddControllers();
+
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseUpper;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never;
+
+    });
+            
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
