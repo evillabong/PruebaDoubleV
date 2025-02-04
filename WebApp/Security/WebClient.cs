@@ -24,9 +24,15 @@ namespace WebApp.Security
             _logger = logger;
         }
 
-        public async Task<TResult> GetAsync<TResult, TMethod>(string endpoint) where TResult : BaseResult where TMethod : Enum
+        public async Task<TResult> GetAsync<TResult, TMethod>(TMethod endpoint) where TResult : BaseResult where TMethod : Enum
         {
-            var response = await _httpClient.GetAsync($"{typeof(TMethod)}/{nameof(TMethod)}");
+            return await GetAsync<TResult>($"{typeof(TMethod)}/{nameof(TMethod)}");
+        }
+
+        public async Task<TResult> GetAsync<TResult>(string endpoint)
+            where TResult : BaseResult
+        {
+            var response = await _httpClient.GetAsync(endpoint);
             response.EnsureSuccessStatusCode();
             return await DeserializeResponse<TResult>(response);
         }

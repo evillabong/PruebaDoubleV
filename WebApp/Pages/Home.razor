@@ -1,6 +1,9 @@
 ﻿@page "/"
+@using Common.Interfaces
 @using WebApp.Views
-
+@inject IWebClient client
+@inject ICryptoService security
+@inject IJSRuntime js
 <h3>Inicio de sesión</h3>
 
 <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
@@ -18,28 +21,46 @@
         <InputText Class="form-control" type="password" placeholder="Contraseña" @bind-Value="@loginModel.Password" disable=@load />
         <ValidationMessage For="@(() => loginModel.Password)" />
     </div>
-            @if (load)
-        {
-            <LoaderView></LoaderView>
-        }
+    @if (load)
+    {
+        <LoaderView></LoaderView>
+    }
     <button type="submit" class="btn btn-primary" disable=@load>Iniciar sesión</button>
 </EditForm>
 
 
-@code{
+@code {
     GetLoginParam loginModel = new GetLoginParam();
     bool load = false;
     private async Task HandleValidSubmit()
     {
-        var httpclient = new HttpClient();
-        httpclient.GetAsync(/)
-
-        var encryptor = new InsaneIO.Insane.Cryptography.RsaEncryptor();
-        encryptor.KeyPair = new InsaneIO.Insane.Cryptography.RsaKeyPair
+        var responsePublicKey = await client.GetAsync<GetPublicKeyResult, Common.Controllers.Security>(Common.Controllers.Security.GetPublicKey);
+        if (responsePublicKey.IsSuccess())
         {
-            PublicKey = 
+            var aes_key = await security.GenerateAesRandomKeyAsync(Common.Constants.KEY_SIZE);
+            var encryptedText = await security.EncryptRsaAsync(responsePublicKey.Value, aes_key);
+
+            var response = await client.PostAsync<GetLoginResult, Common.Controllers.Security, SecureParam>(Common.Controllers.Security.GetLogin, new SecureParam
+                {
+                    Key = aes_key,
+                    Data = encryptedText
+                });
+
+            if (response.IsSuccess())
+            {
+                await js.InvokeVoidAsync("alert", "Inicio Sesion");
+            }
+            else
+            {
+                await js.InvokeVoidAsync("alert", response.Message);
+            }
         }
-        var encrypted = InsaneIO.Insane. EncryptEncodedRsa(publicKey, encoder);
+        else
+        {
+            await js.InvokeVoidAsync("alert", responsePublicKey.Message);
+        }
+
+        
 
     }
 }

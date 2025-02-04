@@ -17,6 +17,7 @@ builder.Services.AddScoped(sp =>
 );
 
 builder.Services.AddScoped<IWebClient, WebClient>();
+builder.Services.AddScoped<ICryptoService, CryptoService>();
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 

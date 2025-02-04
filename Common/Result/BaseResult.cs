@@ -10,5 +10,10 @@ namespace Common.Result
         public ResultType ResultCode { get; set; } = 0;
         public string Message { get; set; } = string.Empty;
         public DateTimeOffset DateTimeOffset { get; set; } = DateTimeOffset.Now;
+
+        public bool IsSuccess()
+        {
+            return ResultCode != ResultType.Success;
+        }
     }
 }

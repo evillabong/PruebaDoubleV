@@ -33,10 +33,10 @@ namespace WebApi.Controllers
 
         [AllowAnonymous]
         [HttpPost(nameof(Common.Controllers.Security.GetLogin))]
-        public async Task<GetLoginResult> GetLogin([FromBody] byte[] param)
+        public async Task<GetLoginResult> GetLogin([FromBody] SecureParam secureParam)
         {
             var ret = new GetLoginResult();
-            var loginParam = await SecurityModel.GetEncryptedObjectAsync<GetLoginParam>(param, _configuration.GetPrivateKey());
+            var loginParam = await SecurityModel.DecryptedObjectAsync<GetLoginParam>(secureParam, _configuration.GetPrivateKey());
             var query = await _dbContext.User
                             .Include(p => p.Person)
                             .FirstOrDefaultAsync(p => p.Username == loginParam.Username);

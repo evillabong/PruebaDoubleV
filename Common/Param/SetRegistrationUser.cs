@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Common.Param
 {
-    public class GetRegistrationUser : GetLoginParam 
+    public class SetRegistrationUser : GetLoginParam 
     {
         public int Id { get; set; }
 
