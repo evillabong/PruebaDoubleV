@@ -1,17 +1,19 @@
 ﻿@page "/"
 @using Common.Interfaces
+@using WebApp.Security
 @using WebApp.Views
 @inject IWebClient client
 @inject ICryptoService security
 @inject IJSRuntime js
+@inject IJwtSessionService session
 <h3>Inicio de sesión</h3>
 
 <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
-    <ValidationSummary />
+    @* <ValidationSummary /> *@
 
     <div class="form-group">
-        <label for="email">Correo electrónico</label>
+        <label for="email">Usuario</label>
         <InputText id="email" class="form-control" @bind-Value="loginModel.Username" disable=@load />
         <ValidationMessage For="@(() => loginModel.Username)" />
     </div>
@@ -34,13 +36,13 @@
     bool load = false;
     private async Task HandleValidSubmit()
     {
-        var responsePublicKey = await client.GetAsync<GetPublicKeyResult, Common.Controllers.Security>(Common.Controllers.Security.GetPublicKey);
+        var responsePublicKey = await client.GetAsync<Common.Controllers.Security, GetPublicKeyResult>(Common.Controllers.Security.GetPublicKey);
         if (responsePublicKey.IsSuccess())
         {
             var aes_key = await security.GenerateAesRandomKeyAsync(Common.Constants.KEY_SIZE);
             var encryptedText = await security.EncryptRsaAsync(responsePublicKey.Value, aes_key);
 
-            var response = await client.PostAsync<GetLoginResult, Common.Controllers.Security, SecureParam>(Common.Controllers.Security.GetLogin, new SecureParam
+            var response = await client.PostAsync<SecureParam, Common.Controllers.Security, GetLoginResult>(Common.Controllers.Security.GetLogin, new SecureParam
                 {
                     Key = aes_key,
                     Data = encryptedText
@@ -48,7 +50,10 @@
 
             if (response.IsSuccess())
             {
-                await js.InvokeVoidAsync("alert", "Inicio Sesion");
+                await session.LoginAsync(response.Token);
+                await js.SetItem("Name", response.Name);
+                
+                await js.InvokeVoidAsync("alert", "Inicio Sesión");
             }
             else
             {
@@ -60,7 +65,7 @@
             await js.InvokeVoidAsync("alert", responsePublicKey.Message);
         }
 
-        
+
 
     }
 }

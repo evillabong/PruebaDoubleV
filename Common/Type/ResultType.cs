@@ -11,6 +11,7 @@ namespace Common.Type
         SessionFail= 98,
         InternalError = 99,
         ContextFail = 100,
-        UnknowError = 101
+        UnknowError = 101,
+        ClientError = 102
     }
 }

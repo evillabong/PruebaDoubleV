@@ -10,7 +10,7 @@ namespace Common.Interfaces
     public interface IWebClient
     {
         Task<TResult> GetAsync<TResult>(string endpoint) where TResult : BaseResult;
-        Task<TResult> GetAsync<TResult, TMethod>(TMethod endpoint) where TResult : BaseResult where TMethod : Enum;
-        Task<TResult> PostAsync<TResult, TMethod, TParam>(TMethod endpoint, TParam data) where TResult : BaseResult where TMethod : Enum where TParam : BaseParam;
+        Task<TResult> GetAsync<TMethod, TResult>(TMethod endpoint) where TResult : BaseResult where TMethod : Enum;
+        Task<TResult> PostAsync<TParam,TMethod, TResult>(TMethod endpoint, TParam data) where TResult : BaseResult where TMethod : Enum where TParam : BaseParam;
     }
 }

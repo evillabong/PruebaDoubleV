@@ -18,7 +18,6 @@ namespace Common.Param
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "El campo Apellidos solo debe contener letras y espacios.")]
         public string Lastname { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo Tipo Identificación es requerido.")]
         public IdentificationType IdentificationType { get; set; }
 
         [Required(ErrorMessage = "El campo Identificación es requerido.")]

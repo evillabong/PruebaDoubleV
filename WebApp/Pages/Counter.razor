@@ -1,18 +1,68 @@
 ﻿@page "/counter"
+@using Common.Interfaces
+@inject IWebClient client
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>Registro de cliente</PageTitle>
 
-<h1>Counter</h1>
+<EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    @* <ValidationSummary /> *@
 
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    <div class="form-group">
+        <label for="email">Nombres</label>
+        <InputText class="form-control" @bind-Value="model.Firstname" disable=@load />
+        <ValidationMessage For="@(() => model.Firstname)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Apellidos</label>
+        <InputText class="form-control" @bind-Value="model.Lastname" disable=@load />
+        <ValidationMessage For="@(() => model.Lastname)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Usuario</label>
+        <InputText class="form-control" @bind-Value="model.Username" disable=@load />
+        <ValidationMessage For="@(() => model.Username)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Identificación</label>
+        <InputText class="form-control" @bind-Value="model.Identification" disable=@load />
+        <ValidationMessage For="@(() => model.Identification)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Tipo de Identificación</label>
+        <select class="form-select" @bind="model.IdentificationType" disable=@load>
+            <option value="@Common.Type.IdentificationType.Cedula"> CEDULA</option>
+            <option value="@Common.Type.IdentificationType.Ruc"> RUC </option>
+            <option value="@Common.Type.IdentificationType.Pasaporte"> PASAPORTE </option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="password">Contraseña</label>
+        <InputText Class="form-control" type="password" placeholder="Contraseña" @bind-Value="@model.Password" disable=@load />
+        <ValidationMessage For="@(() => model.Password)" />
+    </div>
+    <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <InputText class="form-control" @bind-Value="model.Email" disable=@load />
+        <ValidationMessage For="@(() => model.Email)" />
+    </div>
+    @if (load)
+    {
+        <LoaderView></LoaderView>
+    }
+    <button type="submit" class="btn btn-primary" disable=@load>Iniciar sesión</button>
+</EditForm>
 
 @code {
-    private int currentCount = 0;
+    SetRegistrationUserParam model = new SetRegistrationUserParam();
+    bool load = false;
 
-    private void IncrementCount()
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+    }
+
+    async void HandleValidSubmit()
+    {
+        var response = await client.PostAsync<SetRegistrationUserParam, Common.Controllers.User, SetRegistrationUserResult>(Common.Controllers.User.SetRegistrationUser, model);
     }
 }

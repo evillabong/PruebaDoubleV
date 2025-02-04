@@ -13,7 +13,7 @@ namespace Common.Result
 
         public bool IsSuccess()
         {
-            return ResultCode != ResultType.Success;
+            return ResultCode == ResultType.Success;
         }
     }
 }

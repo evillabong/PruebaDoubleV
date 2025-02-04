@@ -4,6 +4,14 @@ using Common.Interfaces;
 using Common.Result;
 using Common.Param;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Reflection.Metadata;
+using System;
+using Microsoft.JSInterop;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
 
 namespace WebApp.Security
 {
@@ -12,8 +20,9 @@ namespace WebApp.Security
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
-        private ILogger _logger;
-        public WebClient(HttpClient httpClient, ILogger logger)
+        private string Token = string.Empty;
+        private IJSRuntime _js;
+        public WebClient(HttpClient httpClient, IJSRuntime js)
         {
             _httpClient = httpClient;
             _jsonOptions = new JsonSerializerOptions
@@ -21,28 +30,41 @@ namespace WebApp.Security
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-            _logger = logger;
+            _js = js;
         }
 
-        public async Task<TResult> GetAsync<TResult, TMethod>(TMethod endpoint) where TResult : BaseResult where TMethod : Enum
+        public async Task<TResult> GetAsync<TMethod, TResult>(TMethod endpoint) where TResult : BaseResult where TMethod : Enum
         {
-            return await GetAsync<TResult>($"{typeof(TMethod)}/{nameof(TMethod)}");
+            var url = _httpClient.BaseAddress!.ToString();
+            url += $"{endpoint.GetType().Name}/{endpoint.ToString()}";
+            return await GetAsync<TResult>(url);
         }
 
-        public async Task<TResult> GetAsync<TResult>(string endpoint)
-            where TResult : BaseResult
+        public async Task<TResult> GetAsync<TResult>(string endpoint) where TResult : BaseResult
         {
-            var response = await _httpClient.GetAsync(endpoint);
-            response.EnsureSuccessStatusCode();
-            return await DeserializeResponse<TResult>(response);
+            var requestMessage = new HttpRequestMessage()
+            {
+                Method = new HttpMethod("GET"),
+                RequestUri = new Uri(endpoint),
+            };
+            return await SendRequest<TResult>(requestMessage);
         }
 
-        public async Task<TResult> PostAsync<TResult, TMethod, TParam>(TMethod endpoint, TParam data) where TResult : BaseResult where TMethod : Enum where TParam : BaseParam
+        public async Task<TResult> PostAsync<TParam, TMethod, TResult>(TMethod endpoint, TParam data) where TResult : BaseResult where TMethod : Enum where TParam : BaseParam
         {
-            var content = CreateJsonContent(data);
-            var response = await _httpClient.PostAsync($"{typeof(TMethod)}/{nameof(TMethod)}", content);
-            response.EnsureSuccessStatusCode();
-            return await DeserializeResponse<TResult>(response);
+            await SetAuthorizations();
+
+            //var url = $"{await GetUrl()}/api/{method.GetType().Name}/{method.ToString()}{query?.GetQueryString()}";
+            var url = _httpClient.BaseAddress!.ToString();
+            url += $"{endpoint.GetType().Name}/{endpoint.ToString()}";
+            var requestMessage = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(url),
+                Content = CreateJsonContent(data),
+            };
+
+            return await SendRequest<TResult>(requestMessage);
         }
 
         private StringContent CreateJsonContent(object data)
@@ -51,26 +73,41 @@ namespace WebApp.Security
             return new StringContent(json, Encoding.UTF8, "application/json");
         }
 
-        private async Task<TResult> DeserializeResponse<TResult>(HttpResponseMessage response) where TResult : BaseResult
+        private async Task<TResult> SendRequest<TResult>(HttpRequestMessage requestMessage) where TResult : BaseResult
         {
             try
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<TResult>(responseContent, _jsonOptions)!;
+                requestMessage.SetBrowserRequestCache(BrowserRequestCache.NoCache);
+                requestMessage.SetBrowserRequestMode(BrowserRequestMode.Cors);
+                requestMessage.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
+
+                if (!string.IsNullOrEmpty(Token))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var content = await requestMessage.Content!.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<TResult>(content);
+                return result!;
+
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, this.GetType().Name);
-                var @base = new BaseResult
+                var baseResult = new BaseResult
                 {
-                    ResultCode = Common.Type.ResultType.UnknowError,
-                    Message = "Error desconocido"
+                    ResultCode = Common.Type.ResultType.ClientError,
+                    Message = "Error desconocido de cliente"
                 };
-                var json = JsonSerializer.Serialize(@base);
-                var baseResult = System.Text.Json.JsonSerializer.Deserialize<TResult>(json)!;
-
-                return baseResult;
+                var json = JsonSerializer.Serialize(baseResult);
+                return JsonSerializer.Deserialize<TResult>(json)!;
             }
+        }
+        private async Task SetAuthorizations()
+        {
+            var token = await _js.GetItem("Token");
+            this.Token = token;
         }
     }
 }

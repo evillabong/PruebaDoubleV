@@ -61,7 +61,10 @@ namespace WebApi.Controllers
                             Password = await SecurityModel.GetHash512Async(param.Password),
                             PersonId = person.Id
                         };
+
+                        await _dbContext.User.AddAsync(user);
                         await _dbContext.SaveChangesAsync();
+
                         await _dbContext.Database.CommitTransactionAsync();
 
                     }

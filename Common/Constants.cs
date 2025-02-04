@@ -10,5 +10,7 @@ namespace Common
         public const int IV_SIZE = 16;           // Tamaño del IV para AES-CBC
         public const int SALT_SIZE = 32;         // Salt para PBKDF2
         public const int HMAC_SIZE = 32;         // HMAC-SHA256
+
+        public const string IDENTITY = "IDENTITY";
     }
 }
